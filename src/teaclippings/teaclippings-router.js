@@ -19,6 +19,7 @@ const serializeTeaClipping = teaclipping => ({
   details: xss(teaclipping.details),
   temp: xss(teaclipping.temp),
   brew_time: xss(teaclipping.brew_time),
+  image: xss(teaclipping.image),
 });
 
 
@@ -41,8 +42,8 @@ teaClippingsRouter
 //what it takes to join our archives, specifically ensuring they have all the relevant values, and then 
 //responds based off what is contained in the new potential clipping.  
   .post(bodyParser, (req, res, next) => {
-    const { name, tea_type, caffeine, taste, details, temp, brew_time } = req.body;
-    const newTeaClipping = { name, tea_type, caffeine, taste, details, temp, brew_time };
+    const { name, tea_type, caffeine, taste, details, temp, brew_time, image } = req.body;
+    const newTeaClipping = { name, tea_type, caffeine, taste, details, temp, brew_time, image };
 
     for (const field of ['name', 'tea_type', 'caffeine', 'taste']) {
       if (!newTeaClipping[field]) {
@@ -107,15 +108,15 @@ teaClippingsRouter
 //an Oolong, it will need to be updated to contain the correct information. This endpoint handles PATCH 
 //requests and will do just that. 
   .patch(bodyParser, (req, res, next) => {
-    const { name, tea_type, caffeine, taste, details, temp, steep_time } = req.body;
-    const teaClippingToUpdate = { name, tea_type, caffeine, taste, details, temp, steep_time };
+    const { name, tea_type, caffeine, taste, details, temp, brew_time, image } = req.body;
+    const teaClippingToUpdate = { name, tea_type, caffeine, taste, details, temp, brew_time, image };
 
     const numberOfValues = Object.values(teaClippingToUpdate).filter(Boolean).length;
     if (numberOfValues === 0) {
       logger.error(`Values provided matched all values present for this tea clipping.`)
       return res.status(400).json({
         error: {
-          message: `No changes were detected. To update a tea clipping please provide an updated value for Name, Tea Type, Caffeine Level, Taste, Details, Brewing Tempature, or Steep Time.`
+          message: `No changes were detected. To update a tea clipping please provide an updated value for Name, Tea Type, Caffeine Level, Taste, Details, Brewing Tempature, or Brew Time.`
         }
       });
     }

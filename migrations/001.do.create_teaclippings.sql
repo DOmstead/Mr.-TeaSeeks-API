@@ -6,5 +6,6 @@ caffeine text not null,
 taste text not null,
 details text,
 temp integer,
-brew_time text
+brew_time text,
+image text
 );
