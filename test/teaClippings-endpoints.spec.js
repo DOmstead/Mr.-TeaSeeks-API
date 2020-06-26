@@ -45,6 +45,13 @@ describe('The Mr. TeaSeeks Archive Endpoints', () => {
         .expect(404, { error: 'Unauthorized request' });
     });
 
+    it('responds with 401 Unauthorized for PATCH /teaClippings/:id', () => {
+      const secondTeaClipping = testTeaClippings[1];
+      return supertest(app)
+        .patch(`/teaClippings/${secondTeaClipping.id}`)
+        .expect(401, { error: 'Unauthorized request' });
+    });
+
     it('responds with 401 Unauthorized for GET /teaClippings/:id', () => {
       const secondTeaClipping = testTeaClippings[1];
       return supertest(app)
@@ -60,7 +67,7 @@ describe('The Mr. TeaSeeks Archive Endpoints', () => {
     });
   });
 
-  //This test ensure your tea is crisp and clean. Well, actually it just maes sur eit's what you are expecting. 
+  //This test ensure your tea is crisp and clean. Well, actually it just makes sure it's what you are expecting. 
   //But with Mr. TeaSeeks that still means it was some really great tea!
   describe('GET /teaClippings', () => {
     context('Given no teaClippings', () => {
@@ -89,8 +96,7 @@ describe('The Mr. TeaSeeks Archive Endpoints', () => {
       });
     });
   });
-
-  //No record? This test sends bakc an error. Found the record? This test shows it works!
+ 
   describe('GET /teaClippings/:id', () => {
     context('Given no teaClippings', () => {
       it('responds 404 when teaClipping doesn\'t exist', () => {
@@ -123,6 +129,55 @@ describe('The Mr. TeaSeeks Archive Endpoints', () => {
     });
   });
 
+  //This test ensures the PATCH endpoint works as expected.
+  describe('PATCH /teaClippings/:id', () => {
+    context('Given no teaClippings', () => {
+      it('responds 404 when teaClipping doesn\'t exist', () => {
+        return supertest(app)
+          .patch('/teaClippings/123')
+          .set('Authorization', `Bearer ${process.env.API_TOKEN}`)
+          .expect(404, {
+            error: { message: 'TeaClipping Not Found' }
+          });
+      });
+    });
+  
+    context('Given there are teaClippings in the database', () => {
+      const testTeaClippings = fixtures.makeTeaClippingsArray();
+  
+      beforeEach('insert teaClippings', () => {
+        return db
+          .into('teaClippings')
+          .insert(testTeaClippings);
+      });
+  
+      it('responds with 200 and updates the specified teaClipping', () => {
+        const newTeaClipping = {
+          name: 'test-name',
+          tea_type: 'Black',
+          caffeine: 'Classic',
+          taste: 'Light'
+        };
+        const teaClippingId = 2;
+        const expectedTeaClipping = testTeaClippings[teaClippingId - 1];
+        return supertest(app)
+          .patch(`/teaClippings/${teaClippingId}`)
+          .send(newTeaClipping)
+          .set('Authorization', `Bearer ${process.env.API_TOKEN}`)
+          .expect(res => {
+            expect(res.body.name).to.eql(newTeaClipping.name);
+            expect(res.body.tea_type).to.eql(newTeaClipping.tea_type);
+            expect(res.body.caffeine).to.eql(newTeaClipping.caffeine);
+            expect(res.body.taste).to.eql(newTeaClipping.taste);
+            expect(res.body).to.have.property('id');
+            expect(res.headers.location).to.eql(`/teaClippings/${res.body.id}`);
+          })
+          .expect(200, expectedTeaClipping);
+      });
+    });
+  });
+  
+
   //This DELETE test makes sure delete endpoint works. Or it gives an error.
   describe('DELETE /teaClippings/:id', () => {
     context('Given no teaClippings', () => {
@@ -145,20 +200,36 @@ describe('The Mr. TeaSeeks Archive Endpoints', () => {
           .insert(testTeaClippings);
       });
 
-      it('removes the teaClipping by ID from the store', () => {
-        const idToRemove = 2;
-        const expectedTeaClippings = testTeaClippings.filter(bm => bm.id !== idToRemove);
+      it('edits the existing teaclipping', () => {
+        const newTeaClipping = {
+          name: 'test-name',
+          tea_type: 'Black',
+          caffeine: 'Classic',
+          taste: 'Light'
+        };
+
         return supertest(app)
-          .delete(`/teaClippings/${idToRemove}`)
+          .patch('/teaClippings')
+          .send(newTeaClipping)
           .set('Authorization', `Bearer ${process.env.API_TOKEN}`)
-          .expect(204)
-          .then(() =>
+          .expect(201)
+          .expect(res => {
+            expect(res.body.name).to.eql(newTeaClipping.name);
+            expect(res.body.tea_type).to.eql(newTeaClipping.tea_type);
+            expect(res.body.caffeine).to.eql(newTeaClipping.caffeine);
+            expect(res.body.taste).to.eql(newTeaClipping.taste);
+            expect(res.body).to.have.property('id');
+            expect(res.headers.location).to.eql(`/teaClippings/${res.body.id}`);
+          })
+          .then(res =>
             supertest(app)
-              .get('/teaClippings')
+              .get(`/teaClippings/${res.body.id}`)
               .set('Authorization', `Bearer ${process.env.API_TOKEN}`)
-              .expect(expectedTeaClippings)
+              .expect(res.body)
           );
       });
+
+
     });
   });
 
