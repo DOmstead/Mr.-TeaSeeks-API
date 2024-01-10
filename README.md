@@ -8,7 +8,7 @@ Mr. TeaSeeks is a fullstack app that utilizes Javascript, React, Express, Node, 
 This Git is for the backend/API portion of the application. A link to the live app and the frontend portion of this app can be found below.
 
 ### Live Link:
-https://mr-tea-seeks-frontend.vercel.app/
+https://mr-tea-seeks-frontend.onrender.com/
 
 ### Mr. TeaSeeks Frontend Git:
 
