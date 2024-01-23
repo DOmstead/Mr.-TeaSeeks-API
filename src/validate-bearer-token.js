@@ -9,6 +9,7 @@ const logger = require('./logger');
 //shouldn’t.  
 
 function validateBearerToken(req, res, next) {
+  Mike.test();
   const authToken = req.get('Authorization');
   console.log(`Testing request to path: ${req.path} with authToken ${authToken}: Should be bearer ${API_TOKEN} `);
   
